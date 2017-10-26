@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "build": "babel src -d build",
+    "example": "yarn run build && node build/example.js"
+  },
+  "dependencies": {
+    "babel-preset-es2015": "^6.24.1"
+  }
+}

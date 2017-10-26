@@ -1,0 +1,12 @@
+.Banner {
+  padding: 2em;
+  background: yellow;
+}
+
+.Title {
+  font-size: 1.4em;
+}
+
+.Footer {
+  border-bottom: solid 4px blue;
+}
