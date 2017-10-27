@@ -1,6 +1,3 @@
-import localizer from './localizer';
+import cssLocalizer from './css-localizer';
 
-localizer('./examples', {
-  saltLength: 8,
-  postFix: '.build2',
-});
+cssLocalizer('./examples');

@@ -1,6 +1,9 @@
-.Banner {
+.InfoBox {
   padding: 2em;
   background: yellow;
+  &.InfoBoxActive {
+    color: yellow;
+  }
 }
 
 .Title {

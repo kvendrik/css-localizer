@@ -8,7 +8,7 @@ class Localizer {
   }
 
   parse(filePath) {
-    const {saltLength} = this._options;
+    const {saltLength, includePath} = this._options;
     this._html = this._readFile(filePath);
 
     const tags = this._html.match(/\{([^\}]+)\}/g);
@@ -27,19 +27,25 @@ class Localizer {
         }
 
         const relativePath = tagMatch[2];
-        const absolutePath = filePath.replace(/\/[^\/]+$/, `/${relativePath}`)
+
+        if (includePath) {
+          // create absolute path using the given include path
+          stylesPath = `${includePath}${relativePath}`;
+        } else {
+          // create absolute path based on markup file location
+          stylesPath = filePath.replace(/\/[^\/]+$/, `/${relativePath}`);
+        }
 
         stylesFileName = relativePath.match(/([^\.\/]+)\..+$/)[1];
-        stylesPath = absolutePath;
 
         this._html = this._html.replace(tagMatch[0], '');
-        this._styles = this._readFile(absolutePath);
+        this._styles = this._readFile(stylesPath);
 
         continue;
       }
 
       const className = tagMatch[2];
-      const salt = this._genRandStr(saltLength || 4);
+      const salt = this._genRandStr(saltLength);
       this._replaceClass(className, `${stylesFileName}__${className}__${salt}`);
     }
 
@@ -50,7 +56,7 @@ class Localizer {
   }
 
   _replaceClass(name, newName) {
-    this._html = this._html.replace(`{${name}}`, `"${newName}"`);
+    this._html = this._html.replace(`{${name}}`, `${newName}`);
     this._styles = this._styles.replace(`.${name}`, `.${newName}`);
   }
 
@@ -82,7 +88,7 @@ class Localizer {
   }
 
   _insertBuildExtension(filePath) {
-    const postFix = this._options.postFix || '.build';
+    const postFix = this._options.postFix;
     return filePath.replace(/\.([^\/]+)$/, `${postFix}.$1`);
   }
 
@@ -92,7 +98,24 @@ class Localizer {
   }
 }
 
-export default function(dirPath, options) {
+export default function(dirPath, givenOptions) {
+  const defaultOptions = {
+    saltLength: 4,
+    postFix: '.build',
+    markupExtensions: ['.html'],
+    includePath: null,
+  };
+
+  const options = Object.assign(defaultOptions, givenOptions);
+
+  function checkIsMarkupFile(fileName) {
+    for (const extension of options.markupExtensions) {
+      if (fileName.includes(extension)) {
+        return true;
+      }
+    }
+    return false;
+  }
   function readDir(path) {
     const folders = [];
     const allMarkupFiles = fs.readdirSync(path);
@@ -102,7 +125,7 @@ export default function(dirPath, options) {
         folders.push(fileName);
         continue;
       }
-      if (!fileName.includes('.html') || fileName.includes(options.postFix || '.build')) {
+      if (!checkIsMarkupFile(fileName) || fileName.includes(options.postFix)) {
         continue;
       }
       localizer.parse(`${path}/${fileName}`);
